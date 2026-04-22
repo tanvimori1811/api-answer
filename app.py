@@ -1,22 +1,21 @@
+from flask import Flask, request, jsonify
 import re
-from flask import Flask, request, Response
 
 app = Flask(__name__)
 
-@app.route("/v1/answer", methods=["POST"])
-def answer():
-    data = request.get_json(force=True, silent=True) or {}
+@app.route("/", methods=["POST"])
+def solve():
+    data = request.get_json()
     query = data.get("query", "")
 
-    numbers = re.findall(r"\d+", query)
+    # DATE extraction
+    date_pattern = r'\b\d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) \d{4}\b'
+    match = re.search(date_pattern, query)
 
-    if len(numbers) == 2:
-        total = int(numbers[0]) + int(numbers[1])
-        text = "The sum is " + str(total) + "."
-    else:
-        text = "I don't know"
+    if match:
+        return jsonify({"output": match.group()})
 
-    return Response(text, status=200, content_type="text/plain")
+    return jsonify({"output": "Not found"})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run()
