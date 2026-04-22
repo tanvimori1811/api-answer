@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 import re
 
 app = Flask(__name__)
@@ -12,9 +12,9 @@ def answer():
 
     if len(nums) == 2:
         result = nums[0] + nums[1]
-        return f"The sum is {result}."
+        return Response(f"The sum is {result}.", mimetype="text/plain")
 
-    return "I don't know"
+    return Response("I don't know", mimetype="text/plain")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
