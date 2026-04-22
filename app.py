@@ -9,7 +9,7 @@ def answer():
     query = data.get("query", "")
 
     nums = list(map(int, re.findall(r'\d+', query)))
-    
+
     if len(nums) == 2:
         result = nums[0] + nums[1]
         return f"The sum is {result}."
