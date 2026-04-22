@@ -1,33 +1,37 @@
-from flask import Flask, request, jsonify
 import re
-import os
+from flask import Flask, request, Response
 
 app = Flask(__name__)
 
-def solve_query(query):
-    # normalize query
-    q = query.strip().lower()
-
-    # STRICT exact match (covers spacing/case variations)
-    if "10" in q and "15" in q and "+" in q:
-        return "The sum is 25."
-
-    # fallback (optional but safe)
-    numbers = list(map(int, re.findall(r'\d+', q)))
-
-    if "+" in q and len(numbers) >= 2:
-        return f"The sum is {numbers[0] + numbers[1]}."
-
-    return "The answer cannot be determined."
-
-@app.route('/', methods=['POST'])
-def api():
-    data = request.get_json()
+@app.route("/v1/answer", methods=["POST"])
+def answer():
+    data = request.get_json(force=True, silent=True) or {}
     query = data.get("query", "")
 
-    return jsonify({
-        "output": solve_query(query)
-    })
+    # -------- LEVEL 1: SUM --------
+    nums = re.findall(r'\d+', query)
+    if len(nums) >= 2 and ("+" in query or "sum" in query.lower()):
+        total = int(nums[0]) + int(nums[1])
+        return Response(f"The sum is {total}.", content_type="text/plain")
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    # -------- LEVEL 2: DATE --------
+    match = re.search(r'\b(\d{1,2} [A-Za-z]+ \d{4})\b', query)
+    if match:
+        return Response(match.group(1), content_type="text/plain")
+
+    # -------- LEVEL 3: ODD / EVEN --------
+    match = re.search(r'\d+', query)
+    if match:
+        num = int(match.group())
+
+        if "odd" in query.lower():
+            return Response("YES" if num % 2 != 0 else "NO", content_type="text/plain")
+
+        if "even" in query.lower():
+            return Response("YES" if num % 2 == 0 else "NO", content_type="text/plain")
+
+    return Response("I don't know", content_type="text/plain")
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
