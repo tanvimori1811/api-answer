@@ -5,16 +5,27 @@ app = Flask(__name__)
 
 @app.route('/v1/answer', methods=['POST'])
 def answer():
-    data = request.get_json()
-    query = data.get("query", "")
+    try:
+        data = request.get_json(force=True) or {}
+        query = data.get("query", "")
 
-    nums = list(map(int, re.findall(r'\d+', query)))
+        # Extract numbers
+        nums = list(map(int, re.findall(r'\d+', query)))
 
-    if len(nums) == 2:
-        result = nums[0] + nums[1]
-        return Response(f"The sum is {result}.", mimetype="text/plain")
+        if len(nums) == 2:
+            result = nums[0] + nums[1]
 
-    return Response("I don't know", mimetype="text/plain")
+            # EXACT required output (no newline, no JSON)
+            return Response(
+                f"The sum is {result}.",
+                content_type="text/plain; charset=utf-8"
+            )
+
+        return Response("I don't know", content_type="text/plain; charset=utf-8")
+
+    except Exception:
+        return Response("I don't know", content_type="text/plain; charset=utf-8")
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
