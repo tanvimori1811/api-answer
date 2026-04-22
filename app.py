@@ -1,37 +1,40 @@
+from flask import Flask, request, jsonify
 import re
-from flask import Flask, request, Response
+import os
 
 app = Flask(__name__)
 
 @app.route("/v1/answer", methods=["POST"])
 def answer():
     data = request.get_json(force=True, silent=True) or {}
-    query = data.get("query", "")
+    query = data.get("query", "").strip()
 
-    # -------- LEVEL 1: SUM --------
-    nums = re.findall(r'\d+', query)
-    if len(nums) >= 2 and ("+" in query or "sum" in query.lower()):
+    q = query.lower()
+
+    # -------- LEVEL 1 --------
+    nums = re.findall(r'\d+', q)
+    if len(nums) >= 2 and ("+" in q or "sum" in q):
         total = int(nums[0]) + int(nums[1])
-        return Response(f"The sum is {total}.", content_type="text/plain")
+        return jsonify({"output": f"The sum is {total}."})
 
-    # -------- LEVEL 2: DATE --------
-    match = re.search(r'\b(\d{1,2} [A-Za-z]+ \d{4})\b', query)
-    if match:
-        return Response(match.group(1), content_type="text/plain")
+    # -------- LEVEL 2 --------
+    date_match = re.search(r'\b(\d{1,2} [A-Za-z]+ \d{4})\b', query)
+    if date_match:
+        return jsonify({"output": date_match.group(1)})
 
-    # -------- LEVEL 3: ODD / EVEN --------
-    match = re.search(r'\d+', query)
-    if match:
-        num = int(match.group())
+    # -------- LEVEL 3 --------
+    num_match = re.search(r'\d+', q)
+    if num_match:
+        num = int(num_match.group())
 
-        if "odd" in query.lower():
-            return Response("YES" if num % 2 != 0 else "NO", content_type="text/plain")
+        if "odd" in q:
+            return jsonify({"output": "YES" if num % 2 != 0 else "NO"})
 
-        if "even" in query.lower():
-            return Response("YES" if num % 2 == 0 else "NO", content_type="text/plain")
+        if "even" in q:
+            return jsonify({"output": "YES" if num % 2 == 0 else "NO"})
 
-    return Response("I don't know", content_type="text/plain")
+    return jsonify({"output": ""})
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
