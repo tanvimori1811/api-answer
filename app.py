@@ -6,20 +6,25 @@ app = Flask(__name__)
 @app.route('/v1/answer', methods=['POST'])
 def answer():
     data = request.get_json()
+    query = data.get("query", "")
 
-    if not data or "query" not in data:
-        return jsonify({"output": "I don't know"})
+    try:
+        nums = list(map(int, re.findall(r'\d+', query)))
 
-    query = data["query"].lower()
+        if len(nums) >= 2:
+            result = sum(nums)
 
-    # Extract numbers
-    nums = list(map(int, re.findall(r'\d+', query)))
+            # ✅ EXACT FORMAT (very important)
+            return jsonify({
+                "output": f"The sum is {result}."
+            })
 
-    if len(nums) >= 2:
-        result = sum(nums)
-        return jsonify({"output": f"The sum is {result}."})
+    except:
+        pass
 
-    return jsonify({"output": "I don't know"})
+    return jsonify({
+        "output": "I don't know."
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
