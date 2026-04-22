@@ -12,7 +12,7 @@ def answer():
 
     if len(nums) == 2:
         result = nums[0] + nums[1]
-        return f"The sum is {result}."
+        return f"The sum is {result}.".strip()
 
     return "I don't know"
 
